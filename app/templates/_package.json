@@ -1,0 +1,70 @@
+{
+  "name": "<%= utils.slug(projectName) %>",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npm run build && npm run watch",
+    "serve": "nodemon dist/keystone.js",    
+    "test": "jest --forceExit",
+    "build-ts": "tsc",
+    "watch-ts": "tsc -w"<% if (preprocessor === 'sass') { %>,
+    "build": "npm run build-sass && npm run build-ts && npm run tslint && npm run copy-static-assets",
+    "build-sass": "node-sass src/public/styles/site.scss -o dist/public/styles/",
+    "watch": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-sass\" \"npm run watch-ts\" \"npm run serve\"",
+    "watch-debug": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-sass\" \"npm run watch-ts\" \"npm run serve-debug\"",
+    "watch-sass": "node-sass -w src/public/styles/site.scss -o dist/public/styles/"<% } else if (preprocessor === 'stylus') { %>,
+    "prestart": "node mkdir.js",
+    "build": "npm run build-stylus && npm run build-ts && npm run tslint && npm run copy-static-assets",
+    "build-stylus": "stylus src/public/styles/site.styl -o dist/public/styles",
+    "watch": "concurrently -k -p \"[{name}]\" -n \"Stylus,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-stylus\" \"npm run watch-ts\" \"npm run serve\"",
+    "watch-debug": "concurrently -k -p \"[{name}]\" -n \"Stylus,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-stylus\" \"npm run watch-ts\" \"npm run serve-debug\"",
+    "watch-stylus": "stylus -w src/public/styles/site.styl -o dist/public/styles/site.css" <% } else if (preprocessor === 'less') { %>,
+    "build": "npm run build-less && npm run build-ts && npm run tslint && npm run copy-static-assets",
+    "build-less": "lessc src/public/styles/site.less dist/public/styles/site.min.css",
+    "watch": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run serve\"",
+    "watch-debug": "concurrently -k -p \"[{name}]\" -n \"Less,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-less\" \"npm run watch-ts\" \"npm run serve-debug\"",
+    "watch-less": "lessc src/public/styles/site.less dist/public/styles/site.min.css" <% } %>,
+    "tslint": "tslint -c tslint.json -p tsconfig.json",
+    "copy-static-assets": "node copyStaticAssets.js",
+    "debug": "npm run build && npm run watch-debug",
+    "serve-debug": "nodemon --inspect dist/keystone.js"
+  },
+  "dependencies": {
+    "async": "^2.6.0",
+    "dotenv": "^4.0.0",
+    "keystone": "4.0.0-beta.7",
+    "lodash": "^4.13.1",<% if (viewEngine === 'hbs') { %>
+    "moment": "2.17.1",
+    "cloudinary": "^1.9.1",
+    "express-handlebars": "3.0.0",
+    "handlebars": "4.0.6",<% } else if (viewEngine === 'nunjucks') { %>
+    "consolidate": "0.14.5",
+    "nunjucks": "3.0.0", <% } else if (viewEngine === 'pug') { %>
+    "pug": "2.0.0-beta11", <% } else if (viewEngine === 'twig') { %>
+    "twig":"0.10.3",<% } if (preprocessor === 'sass') { %>
+    "node-sass": "4.5.0",
+    "node-sass-middleware": "0.11.0", <% } else if (preprocessor === 'stylus') { %>
+    "stylus": "0.54.5", <% } else if (preprocessor === 'less') { %>
+    "less":"*", <% } %> <% if (includeEmail) { %>
+    "keystone-email": "1.0.5" <% } %>
+  },
+  "devDependencies": {
+    "@types/async": "^2.0.40",
+    "@types/dotenv": "^2.0.20",
+    "@types/errorhandler": "0.0.32",
+    "@types/express": "^4.0.35",
+    "@types/lodash": "^4.14.80",
+    "@types/mongoose": "^4.7.9",
+    "@types/node": "^7.0.12",
+    "concurrently": "^3.4.0",
+    
+    "node-sass": "^4.5.2",
+    "nodemon": "^1.11.0",
+    "shelljs": "^0.7.7",
+    "supertest": "^2.0.1",
+    "stylus": "0.54.5",
+    "ts-jest": "^21.1.4",
+    "tslint": "^5.8.0",
+    "typescript": "^2.4.0"
+  }
+}
