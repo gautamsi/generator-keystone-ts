@@ -18,13 +18,13 @@
   "homepage": "https://github.com/gautamsi/generator-keystone-ts",
   "bugs": "https://github.com/gautamsi/generator-keystone-ts/issues",
   "author": {
-    "name": "Jed Watson",
+    "name": "Gautam Singh",
     "url": "https://github.com/gautamsi"
   },
   "main": "app/index.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/keystonejs/generator-keystone-ts.git"
+    "url": "git://github.com/gautamsi/generator-keystone-ts.git"
   },
   "scripts": {
     "lint": "eslint .",

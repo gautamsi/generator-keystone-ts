@@ -21,7 +21,7 @@ $ npm install -g generator-keystone-ts
 
 If you see errors, check the [problems](#err-please-try-running-this-command-again-as-rootadministrator) section below.
 
-With the generator installed, create an empty directory for your new KeystoneJS Project, and run `yo keystone` in it:
+With the generator installed, create an empty directory for your new KeystoneJS Project, and run `yo keystone-ts` in it:
 
 ````
 $ mkdir myproject
@@ -41,7 +41,7 @@ The generator will ask you a few questions about which features to include, then
 You can run
 
 ```
-yo keystone auto
+yo keystone-ts auto
 ```
 
 to generate a starter project with all default options selected. This is good for experimenting with keystone, but will require adjustment to use as an ongoing project, most importantly:
@@ -151,4 +151,4 @@ For other platforms, see the [MongoDB installation guides](http://docs.mongodb.o
 
 ## License
 
-[MIT License](http://en.wikipedia.org/wiki/MIT_License). Copyright (c) 2016 Gautam Singh.
+[MIT License](http://en.wikipedia.org/wiki/MIT_License). Copyright (c) 2017 Gautam Singh.
