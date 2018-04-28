@@ -43,9 +43,9 @@
     "pug": "2.0.0-beta11", <% } else if (viewEngine === 'twig') { %>
     "twig":"0.10.3",<% } if (preprocessor === 'sass') { %>
     "node-sass": "4.5.0",
-    "node-sass-middleware": "0.11.0", <% } else if (preprocessor === 'stylus') { %>
-    "stylus": "0.54.5", <% } else if (preprocessor === 'less') { %>
-    "less":"*", <% } %> <% if (includeEmail) { %>
+    "node-sass-middleware": "0.11.0" <% } else if (preprocessor === 'stylus') { %>
+    "stylus": "0.54.5" <% } else if (preprocessor === 'less') { %>
+    "less":"*" <% } %> <% if (includeEmail) { %>,
     "keystone-email": "1.0.5" <% } %>
   },
   "devDependencies": {
