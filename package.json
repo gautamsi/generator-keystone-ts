@@ -1,6 +1,6 @@
 {
   "name": "generator-keystone-ts",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A KeystoneJS TypeScript Project Generator for Yeoman",
   "keywords": [
     "yeoman-generator",

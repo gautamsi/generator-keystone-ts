@@ -314,7 +314,7 @@ KeystoneGenerator.prototype.project = function project () {
 
 	this.template('_package.json', 'package.json');
 	this.template('_env', '.env');
-	this.template('_README.MD', 'README.md');
+	this.template('_README.md', 'README.md');
 
 	// this.template('_eslintrc', '.eslintrc');
 	// this.template('_eslintignore', '.eslintignore');
