@@ -1,6 +1,6 @@
 var shell = require('shelljs');
 
-shell.mkdir("-p",["dist/public/js","dist/public/fonts","dist/public/images"])
+shell.mkdir("-p",["dist/public/js","dist/public/fonts","dist/public/images", "dist/public/styles"])
 
 shell.cp('-R', 'src/public/js/', 'dist/public/');
 shell.cp('-R', 'src/public/fonts/', 'dist/public/');

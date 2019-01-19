@@ -10,7 +10,7 @@ import * as nunjucks from 'nunjucks';<% } else if (viewEngine == 'twig') { %>
 import * as Twig from 'twig';<% } %>
 <% if (includeGuideComments) { %>
 // Initialise Keystone with your project's configuration.
-// See http://keystonejs.com/guide/config for available options
+// See https://keystonejs.com/documentation/configuration/ for available options
 // and documentation.
 <% } %>
 keystone.init(<any>{
@@ -22,7 +22,8 @@ keystone.init(<any>{
     'less': 'public',
 <% } else { %>
     'stylus': 'public',
-<% } %> 'static': 'public',
+<% } %>
+    'static': 'public',
     'favicon': 'public/favicon.ico',
     'views': '../templates/views',<% if (viewEngine === 'nunjucks') { %>
     'view engine': '.html',

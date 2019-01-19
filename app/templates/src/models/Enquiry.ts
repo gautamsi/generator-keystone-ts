@@ -25,7 +25,7 @@ Enquiry.add({
 });
 <% if (includeEmail) { %>
 Enquiry.schema.pre('save', function (next) {
-      this.wasNew = this.isNew;
+      this["wasNew"] = this.isNew;
       next();
 });
 

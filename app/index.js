@@ -1,171 +1,173 @@
+/* eslint-disable dot-notation */
 var colors = require('colors'); // eslint-disable-line
-var util = require('util');
 var path = require('path');
 var _ = require('lodash');
 var utils = require('keystone-utils');
 var crypto = require('crypto');
-var yeoman = require('yeoman-generator');
+var Generator = require('yeoman-generator');
 require('./includesPolyfill');
 
-var KeystoneGenerator = module.exports = function KeystoneGenerator (args, options, config) {
+module.exports = class KeystoneGenerator extends Generator {
+	constructor (args, opts) {
+		super(args, opts);
+		this.args = args;
+		this.opts = opts;
+		this.template = (src, dest) => {
+			this.fs.copyTpl(
+				this.templatePath(src),
+				this.destinationPath(dest || src),
+				this
+			);
+		};
 
-	// Set utils for use in templates
-	this.utils = utils;
-	this.auto = args.includes('auto');
-	this.skipInstall = args.includes('skipInstall');
+		this.copy = this.template;
 
-	// Initialise default values
-	this.cloudinaryURL = false;
-	this.mailgunConfigured = false;
-	this.mailgunAPI = false;
-	this.mailgunDomain = false;
+		this.directory = (src, dest) => {
+			this.fs.copy(this.templatePath(src), this.destinationPath(dest || src), this);
+		};
 
-	// Apply the Base Generator
-	yeoman.generators.Base.apply(this, arguments);
+		// Set utils for use in templates
+		this.utils = utils;
+		this.auto = args.includes('auto');
+		this.skipInstall = args.includes('skipInstall');
 
-	// Welcome
-	console.log('\nWelcome to KeystoneJS.\n');
+		// Initialise default values
+		this.cloudinaryURL = false;
+		this.mailgunConfigured = false;
+		this.mailgunAPI = false;
+		this.mailgunDomain = false;
 
-	// This callback is fired when the generator has completed,
-	// and includes instructions on what to do next.
-	var done = _.bind(function done () {
-		var cmd = (this.newDirectory ? '"cd ' + utils.slug(this.projectName) + '" then ' : '') + '"' + 'node keystone' + '"';
-		console.log(
-			'\n------------------------------------------------'
-			+ '\n'
-			+ '\nYour KeystoneJS project is ready to go!'
-			+ '\n'
-			+ '\nFor help getting started, visit http://keystonejs.com/guide'
+		// Welcome
+		this.log('\nWelcome to KeystoneJS.\n');
 
-			+ ((this.includeEmail && !this.mailgunConfigured)
-				? '\n'
-				+ '\nWe\'ve included the setup for email in your project. When you'
-				+ '\nwant to get this working, just create a mailgun account and put'
-				+ '\nyour mailgun details into the .env file.'
-				: '')
 
-			+ ((this.usingDemoCloudinaryAccount)
-				? '\n'
-				+ '\nWe\'ve included a demo Cloudinary Account, which is reset daily.'
-				+ '\nPlease configure your own account or use the LocalImage field instead'
-				+ '\nbefore sending your site live.'
-				: '')
+		// This callback is fired when the generator has completed,
+		// and includes instructions on what to do next.
+		this.on('end', () => {
+			// build TypeScript first time
+			this.spawnCommand('npm', ['run', 'build']).on('close', () => {
 
-			+ '\n\nTo start your new website, run ' + cmd + '.'
-			+ '\n');
+				var cmd = (this.newDirectory ? '"cd ' + utils.slug(this.projectName) + '" then ' : '') + '"' + 'node dist/keystone' + '"';
+				this.log(
+					'\n------------------------------------------------'
+					+ '\n'
+					+ '\nYour KeystoneJS project is ready to go!'
+					+ '\n'
+					+ '\nFor help getting started, visit https://keystonejs.com/getting-started/'
 
-	}, this);
+					+ ((this.includeEmail && !this.mailgunConfigured)
+						? '\n'
+						+ '\nWe\'ve included the setup for email in your project. When you'
+						+ '\nwant to get this working, just create a mailgun account and put'
+						+ '\nyour mailgun details into the .env file.'
+						: '')
 
-	// Install Dependencies when done
-	this.on('end', function () {
+					+ ((this.usingDemoCloudinaryAccount)
+						? '\n'
+						+ '\nWe\'ve included a demo Cloudinary Account, which is reset daily.'
+						+ '\nPlease configure your own account or use the LocalImage field instead'
+						+ '\nbefore sending your site live.'
+						: '')
 
-		this.installDependencies({
-			bower: false,
-			skipMessage: true,
-			skipInstall: options['skip-install'] || this.skipInstall,
-			callback: done,
+					+ '\n\nTo start your new website, run ' + cmd + '.'
+					+ '\n');
+			});
+
 		});
 
-	});
-
-	// Import Package.json
-	this.pkg = JSON.parse(this.readFileAsString(path.join(__dirname, '../package.json')));
-
-};
-
-// Extends the Base Generator
-util.inherits(KeystoneGenerator, yeoman.generators.Base);
-
-KeystoneGenerator.prototype.prompts = function prompts () {
-
-	var cb = this.async();
-
-	if (this.auto) {
-		this._projectName = 'Keystone Starter';
-		this.projectName = 'keystone-starter';
-		this.adminLogin = 'user@keystonejs.com';
-		this.adminPassword = 'admin';
-		this.viewEngine = 'pug';
-		this.preprocessor = 'sass';
-		this.userModel = 'User';
-		this.userModelPath = utils.keyToPath(this.userModel, true);
-		this.destinationRoot(utils.slug(this.projectName));
-		this.includeEmail = true;
-		this.includeBlog = true;
-		this.includeGallery = true;
-		this.usingDemoCloudinaryAccount = true;
-		this.cloudinaryURL = 'cloudinary://333779167276662:_8jbSi9FB3sWYrfimcl8VKh34rI@keystone-demo';
-		this.includeGuideComments = true;
-		this.includeEnquiries = true;
-		this.newDirectory = true;
-		return cb();
+		// Import Package.json
+		this.pkg = this.fs.readJSON(path.join(__dirname, '../package.json'), {});
 	}
 
-	var prompts = {
 
-		project: [
-			{
-				name: 'projectName',
-				message: 'What is the name of your project?',
-				default: 'My Site',
-			}, {
-				name: 'viewEngine',
-				message: 'Would you like to use Pug, Nunjucks, Twig or Handlebars for templates? ' + (('[pug | nunjucks | twig | hbs]').grey),
-				default: 'pug',
-			}, {
-				name: 'preprocessor',
-				message: 'Which CSS pre-processor would you like? ' + (('[less | sass | stylus]').grey),
-				default: 'less',
-			}, {
-				type: 'confirm',
-				name: 'includeBlog',
-				message: 'Would you like to include a Blog?',
-				default: true,
-			}, {
-				type: 'confirm',
-				name: 'includeGallery',
-				message: 'Would you like to include an Image Gallery?',
-				default: true,
-			}, {
-				type: 'confirm',
-				name: 'includeEnquiries',
-				message: 'Would you like to include a Contact Form?',
-				default: true,
-			}, {
-				name: 'userModel',
-				message: 'What would you like to call the User model?',
-				default: 'User',
-			}, {
-				name: 'adminLogin',
-				message: 'Enter an email address for the first Admin user:',
-				default: 'user@keystonejs.com',
-			}, {
-				name: 'adminPassword',
-				message: 'Enter a password for the first Admin user:'
-					+ '\n Please use a temporary password as it will be saved in plain text and change it after the first login.',
-				default: 'admin',
-			}, {
-				type: 'confirm',
-				name: 'newDirectory',
-				message: 'Would you like to create a new directory for your project?',
-				default: true,
-			}, {
-				type: 'confirm',
-				name: 'includeEmail',
-				message: '------------------------------------------------'
-					+ '\n    Would you like to include Email configuration in your project?'
-					+ '\n    We will set you up with an email template for enquiries as well'
-					+ '\n    as optional mailgun integration',
-				default: true,
-			},
-		],
+	async prompts () {
+		var cb = this.async();
 
-		config: [],
+		if (this.auto) {
+			this._projectName = 'Keystone Starter';
+			this.projectName = 'keystone-starter';
+			this.adminLogin = 'user@keystonejs.com';
+			this.adminPassword = 'admin';
+			this.viewEngine = 'pug';
+			this.preprocessor = 'sass';
+			this.userModel = 'User';
+			this.userModelPath = utils.keyToPath(this.userModel, true);
+			this.destinationRoot(utils.slug(this.projectName));
+			this.includeEmail = true;
+			this.includeBlog = true;
+			this.includeGallery = true;
+			this.usingDemoCloudinaryAccount = true;
+			this.cloudinaryURL = 'cloudinary://333779167276662:_8jbSi9FB3sWYrfimcl8VKh34rI@keystone-demo';
+			this.includeGuideComments = true;
+			this.includeEnquiries = true;
+			this.newDirectory = true;
+			return await cb();
+		}
 
-	};
+		var prompts = {
 
-	this.prompt(prompts.project, function (props) {
+			project: [
+				{
+					name: 'projectName',
+					message: 'What is the name of your project?',
+					default: 'My Site',
+				}, {
+					name: 'viewEngine',
+					message: 'Would you like to use Pug, Nunjucks, Twig or Handlebars for templates? ' + (('[pug | nunjucks | twig | hbs]').grey),
+					default: 'pug',
+				}, {
+					name: 'preprocessor',
+					message: 'Which CSS pre-processor would you like? ' + (('[less | sass | stylus]').grey),
+					default: 'less',
+				}, {
+					type: 'confirm',
+					name: 'includeBlog',
+					message: 'Would you like to include a Blog?',
+					default: true,
+				}, {
+					type: 'confirm',
+					name: 'includeGallery',
+					message: 'Would you like to include an Image Gallery?',
+					default: true,
+				}, {
+					type: 'confirm',
+					name: 'includeEnquiries',
+					message: 'Would you like to include a Contact Form?',
+					default: true,
+				}, {
+					name: 'userModel',
+					message: 'What would you like to call the User model?',
+					default: 'User',
+				}, {
+					name: 'adminLogin',
+					message: 'Enter an email address for the first Admin user:',
+					default: 'user@keystonejs.com',
+				}, {
+					name: 'adminPassword',
+					message: 'Enter a password for the first Admin user:'
+						+ '\n Please use a temporary password as it will be saved in plain text and change it after the first login.',
+					default: 'admin',
+				}, {
+					type: 'confirm',
+					name: 'newDirectory',
+					message: 'Would you like to create a new directory for your project?',
+					default: true,
+				}, {
+					type: 'confirm',
+					name: 'includeEmail',
+					message: '------------------------------------------------'
+						+ '\n    Would you like to include Email configuration in your project?'
+						+ '\n    We will set you up with an email template for enquiries as well'
+						+ '\n    as optional mailgun integration',
+					default: true,
+				},
+			],
 
+			config: [],
+
+		};
+
+		const props = await this.prompt(prompts.project);
 		_.assign(this, props);
 
 		// Keep an unescaped version of the project name
@@ -238,7 +240,7 @@ KeystoneGenerator.prototype.prompts = function prompts () {
 					name: 'cloudinaryURL',
 					message: '------------------------------------------------'
 						+ '\n    KeystoneJS integrates with Cloudinary for image upload, resizing and'
-						+ '\n    hosting. See http://keystonejs.com/docs/configuration/#services-cloudinary for more info.'
+						+ '\n    hosting. See https://keystonejs.com/api/field/cloudinaryimage for more info.'
 						+ '\n    '
 						+ '\n    CloudinaryImage fields are used by the ' + blog_gallery + '.'
 						+ '\n    '
@@ -255,252 +257,254 @@ KeystoneGenerator.prototype.prompts = function prompts () {
 			return cb();
 		}
 
-		this.prompt(prompts.config, function (props) {
+		const reProps = await this.prompt(prompts.config);
 
-			_.each(props, function (val, key) {
-				this[key] = val;
-			}, this);
+		_.each(reProps, (val, key) => {
+			this[key] = val;
+		});
 
-			if (this.includeEmail && (this.mailgunAPI && this.mailgunDomain)) {
-				this.mailgunConfigured = true;
-			}
+		if (this.includeEmail && (this.mailgunAPI && this.mailgunDomain)) {
+			this.mailgunConfigured = true;
+		}
 
-			if (!this.cloudinaryURL && (this.includeBlog || this.includeGallery)) {
-				this.usingDemoCloudinaryAccount = true;
-				this.cloudinaryURL = 'cloudinary://333779167276662:_8jbSi9FB3sWYrfimcl8VKh34rI@keystone-demo';
-			}
+		if (!this.cloudinaryURL && (this.includeBlog || this.includeGallery)) {
+			this.usingDemoCloudinaryAccount = true;
+			this.cloudinaryURL = 'cloudinary://333779167276662:_8jbSi9FB3sWYrfimcl8VKh34rI@keystone-demo';
+		}
 
-			cb();
-
-		}.bind(this));
-
-	}.bind(this));
-
-};
-
-KeystoneGenerator.prototype.guideComments = function () {
-
-	var cb = this.async();
-	if (this.auto) {
-		return cb();
+		cb();
 	}
 
+	async guideComments () {
+		var cb = this.async();
+		if (this.auto) {
+			return cb();
+		}
 
-	this.prompt([
-		{
+		const props = await this.prompt([{
 			type: 'confirm',
 			name: 'includeGuideComments',
 			message: '------------------------------------------------'
 				+ '\n    Finally, would you like to include extra code comments in'
 				+ '\n    your project? If you\'re new to Keystone, these may be helpful.',
 			default: true,
-		},
-	], function (props) {
+		}]);
 
 		this.includeGuideComments = props.includeGuideComments;
 		cb();
 
-	}.bind(this));
-
-};
-
-KeystoneGenerator.prototype.keys = function keys () {
-
-	this.cookieSecret = crypto.randomBytes(64).toString('hex');
-
-};
-
-KeystoneGenerator.prototype.project = function project () {
-
-	this.template('_package.json', 'package.json');
-	this.template('_env', '.env');
-	this.template('_README.md', 'README.md');
-
-	// this.template('_eslintrc', '.eslintrc');
-	// this.template('_eslintignore', '.eslintignore');
-	this.template('src/_keystone.ts', 'src/keystone.ts');
-
-	// this.copy('editorconfig', '.editorconfig');
-	this.copy('gitignore', '.gitignore');
-	this.copy('copyStaticAssets.js');
-	if (this.preprocessor === 'stylus') {
-		this.copy('mkdir.js');
-	}
-	this.copy('Procfile');
-	this.copy('tsconfig.json', 'tsconfig.json');
-	this.copy('tslint.json', 'tslint.json');
-
-	this.directory('src/types');
-};
-
-KeystoneGenerator.prototype.models = function models () {
-
-	var modelFiles = [];
-
-	if (this.includeBlog) {
-		modelFiles.push('Post');
-		modelFiles.push('PostCategory');
 	}
 
-	if (this.includeGallery) {
-		modelFiles.push('Gallery');
+	keys () {
+
+		this.cookieSecret = crypto.randomBytes(64).toString('hex');
+
 	}
 
-	if (this.includeEnquiries) {
-		modelFiles.push('Enquiry');
+	project () {
+
+		this.template('_package.json', 'package.json');
+		this.template('_env', '.env');
+		this.template('_README.md', 'README.md');
+
+		// this.template('_eslintrc', '.eslintrc');
+		// this.template('_eslintignore', '.eslintignore');
+		this.template('src/_keystone.ts', 'src/keystone.ts');
+
+		// this.copy('editorconfig', '.editorconfig');
+		this.copy('gitignore', '.gitignore');
+		this.copy('copyStaticAssets.js');
+		if (this.preprocessor === 'stylus') {
+			this.copy('mkdir.js');
+		}
+		this.copy('Procfile');
+		this.copy('tsconfig.json', 'tsconfig.json');
+		this.copy('tslint.json', 'tslint.json');
+
+		this.directory('src/types');
 	}
 
-	this.mkdir('src/models');
+	models () {
 
-	this.template('src/models/_User.ts', 'src/models/' + this.userModel + '.ts');
-
-	modelFiles.forEach(function (i) {
-		this.template('src/models/' + i + '.ts', 'src/models/' + i + '.ts');
-	}, this);
-
-};
-
-KeystoneGenerator.prototype.routes = function routes () {
-
-	this.mkdir('src/routes');
-	this.mkdir('src/routes/views');
-
-	this.template('src/routes/_index.ts', 'src/routes/index.ts');
-	this.template('src/routes/_middleware.ts', 'src/routes/middleware.ts');
-
-	if (this.includeEmail) {
-		this.template('src/routes/_emails.ts', 'src/routes/emails.ts');
-	}
-
-	this.copy('src/routes/views/index.ts');
-
-	if (this.includeBlog) {
-		this.copy('src/routes/views/blog.ts');
-		this.copy('src/routes/views/post.ts');
-	}
-
-	if (this.includeGallery) {
-		this.copy('src/routes/views/gallery.ts', 'src/routes/views/gallery.ts');
-	}
-
-	if (this.includeEnquiries) {
-		this.copy('src/routes/views/contact.ts', 'src/routes/views/contact.ts');
-	}
-
-};
-
-KeystoneGenerator.prototype.templates = function templates () {
-
-	if (this.viewEngine === 'hbs') {
-
-		// Copy Handlebars Templates
-
-		this.mkdir('templates');
-		this.mkdir('templates/views');
-
-		this.directory('templates/default-hbs/views/layouts', 'templates/views/layouts');
-		this.directory('templates/default-hbs/views/helpers', 'templates/views/helpers');
-		this.directory('templates/default-hbs/views/partials', 'templates/views/partials');
-
-		this.template('templates/default-hbs/views/index.hbs', 'templates/views/index.hbs');
+		var modelFiles = [];
 
 		if (this.includeBlog) {
-			this.copy('templates/default-hbs/views/blog.hbs', 'templates/views/blog.hbs');
-			this.copy('templates/default-hbs/views/post.hbs', 'templates/views/post.hbs');
+			modelFiles.push('Post');
+			modelFiles.push('PostCategory');
 		}
 
 		if (this.includeGallery) {
-			this.copy('templates/default-hbs/views/gallery.hbs', 'templates/views/gallery.hbs');
+			modelFiles.push('Gallery');
 		}
 
 		if (this.includeEnquiries) {
-			this.copy('templates/default-hbs/views/contact.hbs', 'templates/views/contact.hbs');
-			if (this.includeEmail) {
-				this.copy('templates/default-hbs/emails/enquiry-notification.hbs', 'templates/emails/enquiry-notification.hbs');
-			}
+			modelFiles.push('Enquiry');
 		}
 
-	} else if (this.viewEngine === 'nunjucks') {
+		// this.mkdir('src/models');
 
-		// Copy Nunjucks Templates
+		this.template('src/models/_User.ts', 'src/models/' + this.userModel + '.ts');
 
-		this.mkdir('templates');
-		this.mkdir('templates/views');
+		modelFiles.forEach(function (i) {
+			this.template('src/models/' + i + '.ts', 'src/models/' + i + '.ts');
+		}, this);
 
-		this.directory('templates/default-' + this.viewEngine + '/views/layouts', 'templates/views/layouts');
-		this.directory('templates/default-' + this.viewEngine + '/views/mixins', 'templates/views/mixins');
-		this.directory('templates/default-' + this.viewEngine + '/views/errors', 'templates/views/errors');
+	}
 
-		this.template('templates/default-' + this.viewEngine + '/views/index.html', 'templates/views/index.html');
+	routes () {
+
+		// this.mkdir('src/routes');
+		// this.mkdir('src/routes/views');
+
+		this.template('src/routes/_index.ts', 'src/routes/index.ts');
+		this.template('src/routes/_middleware.ts', 'src/routes/middleware.ts');
+
+		if (this.includeEmail) {
+			this.template('src/routes/_emails.ts', 'src/routes/emails.ts');
+		}
+
+		this.copy('src/routes/views/index.ts');
 
 		if (this.includeBlog) {
-			this.copy('templates/default-' + this.viewEngine + '/views/blog.html', 'templates/views/blog.html');
-			this.copy('templates/default-' + this.viewEngine + '/views/post.html', 'templates/views/post.html');
+			this.copy('src/routes/views/blog.ts');
+			this.copy('src/routes/views/post.ts');
 		}
 
 		if (this.includeGallery) {
-			this.copy('templates/default-' + this.viewEngine + '/views/gallery.html', 'templates/views/gallery.html');
+			this.copy('src/routes/views/gallery.ts', 'src/routes/views/gallery.ts');
 		}
 
 		if (this.includeEnquiries) {
-			this.copy('templates/default-' + this.viewEngine + '/views/contact.html', 'templates/views/contact.html');
-			if (this.includeEmail) {
-				this.directory('templates/default-' + this.viewEngine + '/emails', 'templates/emails');
+			this.copy('src/routes/views/contact.ts', 'src/routes/views/contact.ts');
+		}
+
+	}
+
+	templates () {
+
+		if (this.viewEngine === 'hbs') {
+
+			// Copy Handlebars Templates
+
+			// this.mkdir('templates');
+			// this.mkdir('templates/views');
+
+			this.copy('templates/default-hbs/views/layouts', 'templates/views/layouts');
+			this.directory('templates/default-hbs/views/helpers', 'templates/views/helpers');
+			this.directory('templates/default-hbs/views/partials', 'templates/views/partials');
+
+			this.template('templates/default-hbs/views/index.hbs', 'templates/views/index.hbs');
+
+			if (this.includeBlog) {
+				this.copy('templates/default-hbs/views/blog.hbs', 'templates/views/blog.hbs');
+				this.copy('templates/default-hbs/views/post.hbs', 'templates/views/post.hbs');
+			}
+
+			if (this.includeGallery) {
+				this.copy('templates/default-hbs/views/gallery.hbs', 'templates/views/gallery.hbs');
+			}
+
+			if (this.includeEnquiries) {
+				this.copy('templates/default-hbs/views/contact.hbs', 'templates/views/contact.hbs');
+				if (this.includeEmail) {
+					this.copy('templates/default-hbs/emails/enquiry-notification.hbs', 'templates/emails/enquiry-notification.hbs');
+				}
+			}
+
+		} else if (this.viewEngine === 'nunjucks') {
+
+			// Copy Nunjucks Templates
+
+			// this.mkdir('templates');
+			// this.mkdir('templates/views');
+
+			this.copy('templates/default-' + this.viewEngine + '/views/layouts', 'templates/views/layouts');
+			this.directory('templates/default-' + this.viewEngine + '/views/mixins', 'templates/views/mixins');
+			this.directory('templates/default-' + this.viewEngine + '/views/errors', 'templates/views/errors');
+
+			this.template('templates/default-' + this.viewEngine + '/views/index.html', 'templates/views/index.html');
+
+			if (this.includeBlog) {
+				this.copy('templates/default-' + this.viewEngine + '/views/blog.html', 'templates/views/blog.html');
+				this.copy('templates/default-' + this.viewEngine + '/views/post.html', 'templates/views/post.html');
+			}
+
+			if (this.includeGallery) {
+				this.copy('templates/default-' + this.viewEngine + '/views/gallery.html', 'templates/views/gallery.html');
+			}
+
+			if (this.includeEnquiries) {
+				this.copy('templates/default-' + this.viewEngine + '/views/contact.html', 'templates/views/contact.html');
+				if (this.includeEmail) {
+					this.directory('templates/default-' + this.viewEngine + '/emails', 'templates/emails');
+				}
+			}
+
+		} else {
+
+			// Copy Pug/Twig Templates
+
+			// this.mkdir('templates');
+			// this.mkdir('templates/views');
+
+			this.copy('templates/default-' + this.viewEngine + '/layouts', 'templates/layouts');
+			this.directory('templates/default-' + this.viewEngine + '/mixins', 'templates/mixins');
+			this.directory('templates/default-' + this.viewEngine + '/views/errors', 'templates/views/errors');
+
+			this.template('templates/default-' + this.viewEngine + '/views/index.' + this.viewEngine, 'templates/views/index.' + this.viewEngine);
+
+			if (this.includeBlog) {
+				this.copy('templates/default-' + this.viewEngine + '/views/blog.' + this.viewEngine, 'templates/views/blog.' + this.viewEngine);
+				this.copy('templates/default-' + this.viewEngine + '/views/post.' + this.viewEngine, 'templates/views/post.' + this.viewEngine);
+			}
+
+			if (this.includeGallery) {
+				this.copy('templates/default-' + this.viewEngine + '/views/gallery.' + this.viewEngine, 'templates/views/gallery.' + this.viewEngine);
+			}
+
+			if (this.includeEnquiries) {
+				this.copy('templates/default-' + this.viewEngine + '/views/contact.' + this.viewEngine, 'templates/views/contact.' + this.viewEngine);
+				if (this.includeEmail) {
+					this.copy('templates/default-' + this.viewEngine + '/emails/enquiry-notification.' + this.viewEngine, 'templates/emails/enquiry-notification.' + this.viewEngine);
+				}
 			}
 		}
 
-	} else {
+	};
 
-		// Copy Pug/Twig Templates
+	updates () {
 
-		this.mkdir('templates');
-		this.mkdir('templates/views');
+		this.copy('src/updates');
 
-		this.directory('templates/default-' + this.viewEngine + '/layouts', 'templates/layouts');
-		this.directory('templates/default-' + this.viewEngine + '/mixins', 'templates/mixins');
-		this.directory('templates/default-' + this.viewEngine + '/views/errors', 'templates/views/errors');
+	}
 
-		this.template('templates/default-' + this.viewEngine + '/views/index.' + this.viewEngine, 'templates/views/index.' + this.viewEngine);
+	files () {
 
-		if (this.includeBlog) {
-			this.copy('templates/default-' + this.viewEngine + '/views/blog.' + this.viewEngine, 'templates/views/blog.' + this.viewEngine);
-			this.copy('templates/default-' + this.viewEngine + '/views/post.' + this.viewEngine, 'templates/views/post.' + this.viewEngine);
-		}
+		this.directory('src/public/images');
+		this.directory('src/public/js');
+		this.copy('src/public/favicon.ico');
 
-		if (this.includeGallery) {
-			this.copy('templates/default-' + this.viewEngine + '/views/gallery.' + this.viewEngine, 'templates/views/gallery.' + this.viewEngine);
-		}
-
-		if (this.includeEnquiries) {
-			this.copy('templates/default-' + this.viewEngine + '/views/contact.' + this.viewEngine, 'templates/views/contact.' + this.viewEngine);
-			if (this.includeEmail) {
-				this.copy('templates/default-' + this.viewEngine + '/emails/enquiry-notification.' + this.viewEngine, 'templates/emails/enquiry-notification.' + this.viewEngine);
-			}
+		if (this.preprocessor === 'sass') {
+			this.directory('src/public/fonts', 'src/public/fonts/bootstrap');
+			this.directory('src/public/styles-sass', 'src/public/styles');
+		} else if (this.preprocessor === 'less') {
+			this.directory('src/public/fonts');
+			this.directory('src/public/styles-less', 'src/public/styles');
+		} else {
+			this.directory('src/public/fonts');
+			this.directory('src/public/styles-stylus', 'src/public/styles');
 		}
 	}
 
-};
-
-KeystoneGenerator.prototype.updates = function routes () {
-
-	this.directory('src/updates');
-
-};
-
-KeystoneGenerator.prototype.files = function files () {
-
-	this.directory('src/public/images');
-	this.directory('src/public/js');
-	this.copy('src/public/favicon.ico');
-
-	if (this.preprocessor === 'sass') {
-		this.directory('src/public/fonts', 'src/public/fonts/bootstrap');
-		this.directory('src/public/styles-sass', 'src/public/styles');
-	} else if (this.preprocessor === 'less') {
-		this.directory('src/public/fonts');
-		this.directory('src/public/styles-less', 'src/public/styles');
-	} else {
-		this.directory('src/public/fonts');
-		this.directory('src/public/styles-stylus', 'src/public/styles');
+	// Install Dependencies when done
+	install () {
+		if (!(this.opts['skip-install'] || this.skipInstall)) {
+			this.installDependencies({
+				npm: !this.opts['yarn'],
+				bower: false,
+				yarn: this.opts['yarn'],
+				skipMessage: true,
+			});
+		}
 	}
 };

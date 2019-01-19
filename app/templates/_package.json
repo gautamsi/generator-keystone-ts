@@ -14,7 +14,7 @@
     "watch-debug": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-sass\" \"npm run watch-ts\" \"npm run serve-debug\"",
     "watch-sass": "node-sass -w src/public/styles/site.scss -o dist/public/styles/"<% } else if (preprocessor === 'stylus') { %>,
     "prestart": "node mkdir.js",
-    "build": "npm run build-stylus && npm run build-ts && npm run tslint && npm run copy-static-assets",
+    "build": "npm run build-ts && npm run copy-static-assets && npm run build-stylus && npm run tslint",
     "build-stylus": "stylus src/public/styles/site.styl -o dist/public/styles",
     "watch": "concurrently -k -p \"[{name}]\" -n \"Stylus,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-stylus\" \"npm run watch-ts\" \"npm run serve\"",
     "watch-debug": "concurrently -k -p \"[{name}]\" -n \"Stylus,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-stylus\" \"npm run watch-ts\" \"npm run serve-debug\"",
@@ -30,41 +30,40 @@
     "serve-debug": "nodemon --inspect dist/keystone.js"
   },
   "dependencies": {
-    "async": "^2.6.0",
-    "dotenv": "^4.0.0",
-    "keystone": "4.0.0-beta.7",
-    "lodash": "^4.13.1",<% if (viewEngine === 'hbs') { %>
-    "moment": "2.17.1",
-    "cloudinary": "^1.9.1",
-    "express-handlebars": "3.0.0",
-    "handlebars": "4.0.6",<% } else if (viewEngine === 'nunjucks') { %>
-    "consolidate": "0.14.5",
-    "nunjucks": "3.0.0", <% } else if (viewEngine === 'pug') { %>
-    "pug": "2.0.0-beta11", <% } else if (viewEngine === 'twig') { %>
-    "twig":"0.10.3",<% } if (preprocessor === 'sass') { %>
-    "node-sass": "4.5.0",
-    "node-sass-middleware": "0.11.0" <% } else if (preprocessor === 'stylus') { %>
-    "stylus": "0.54.5" <% } else if (preprocessor === 'less') { %>
-    "less":"*" <% } %> <% if (includeEmail) { %>,
-    "keystone-email": "1.0.5" <% } %>
+    "async": "^2.6.1",
+    "dotenv": "^6.2.0",
+    "keystone": "^4.0.0",
+    "lodash": "^4.17.11",<% if (viewEngine === 'hbs') { %>
+    "moment": "^2.23.0",
+    "cloudinary": "^1.13.2",
+    "express-handlebars": "^3.0.0",
+    "handlebars": "^4.0.12",<% } else if (viewEngine === 'nunjucks') { %>
+    "consolidate": "^0.15.1",
+    "nunjucks": "^3.1.7", <% } else if (viewEngine === 'pug') { %>
+    "pug": "^2.0.3", <% } else if (viewEngine === 'twig') { %>
+    "twig":"^1.13.0",<% } if (preprocessor === 'sass') { %>
+    "node-sass": "^4.5.0",
+    "node-sass-middleware": "^0.11.0" <% } else if (preprocessor === 'stylus') { %>
+    "stylus": "^0.54.5" <% } else if (preprocessor === 'less') { %>
+    "less":"^3.9.0" <% } %> <% if (includeEmail) { %>,
+    "keystone-email": "^1.1.0" <% } %>
   },
   "devDependencies": {
-    "@types/async": "^2.0.40",
-    "@types/dotenv": "^2.0.20",
-    "@types/errorhandler": "0.0.32",
-    "@types/express": "^4.0.35",
-    "@types/lodash": "^4.14.80",
-    "@types/mongoose": "^4.7.9",
-    "@types/node": "^7.0.12",
-    "concurrently": "^3.4.0",
-    
-    "node-sass": "^4.5.2",
-    "nodemon": "^1.11.0",
-    "shelljs": "^0.7.7",
-    "supertest": "^2.0.1",
-    "stylus": "0.54.5",
-    "ts-jest": "^21.1.4",
-    "tslint": "^5.8.0",
-    "typescript": "^2.4.0"
+    "@types/async": "^2.4.0",
+    "@types/dotenv": "^6.1.0",
+    "@types/errorhandler": "^0.0.32",
+    "@types/express": "^4.16.0",
+    "@types/lodash": "^4.14.120",
+    "@types/mongoose": "^5.3.8",
+    "@types/node": "^10.12.18",
+    "concurrently": "^4.1.0",
+    "node-sass": "^4.11.0",
+    "nodemon": "^1.18.9",
+    "shelljs": "^0.8.3",
+    "supertest": "^3.4.1",
+    "stylus": "^0.54.5",
+    "ts-jest": "^23.10.5",
+    "tslint": "^5.12.1",
+    "typescript": "^3.2.4"
   }
 }
